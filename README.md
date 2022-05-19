@@ -6,6 +6,23 @@ A simple API in GO using DynamoDB for save information
 - Run `go get -u github.com/gin-gonic/gin`
 - Create `main.go`
 
+## Endpoints
+- GET ALL (GET http://localhost:8080/albums)
+- GET BY ID (GET http://localhost:8080/albums/1)
+- ADD ALBUM (POST http://localhost:8080/albums)
+- UPDATE ALBUM (PUT http://localhost:8080/albums/1)
+- DELETE ALBUM (DELETE http://localhost:8080/albums/1)
+
+## Structure of JSON ALBUM
+```
+{
+    "id": "4",
+    "title": "Vivir asi es morir de amor",
+    "artist": "Nathy Peluso",
+    "price": 99.99
+}
+```
+
 ## Configuration
 - Configure the `.env` file for custom port server, credentials aws and region
 
