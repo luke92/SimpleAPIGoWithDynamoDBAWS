@@ -2,11 +2,14 @@ module github.com/luke92/SimpleAPIGoWithDynamoDBAWS
 
 go 1.18
 
-require github.com/gin-gonic/gin v1.7.7
+require (
+	github.com/aws/aws-sdk-go-v2 v1.16.4
+	github.com/aws/aws-sdk-go-v2/credentials v1.12.2
+	github.com/gin-gonic/gin v1.7.7
+	github.com/joho/godotenv v1.4.0
+)
 
 require (
-	github.com/aws/aws-sdk-go-v2 v1.16.4 // indirect
-	github.com/aws/aws-sdk-go-v2/credentials v1.12.2 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.5 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.11 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.5 // indirect

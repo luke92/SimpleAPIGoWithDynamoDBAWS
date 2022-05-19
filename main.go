@@ -5,11 +5,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
+	"os"
 
 	//GIN
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+
+	// Import godotenv
+	"github.com/joho/godotenv"
 
 	//AWS DynamoDB
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -36,31 +41,49 @@ var albums = []Album{
 
 func main() {
 
-	//SETUP AWS with Credentials IAM or Lambda
-	/*
-		cfg, err := config.LoadDefaultConfig(context.TODO(), func(o *config.LoadOptions) error {
-			o.Region = "us-east-1"
+	svc := initDynamoDB()
+	tableNames := listTables(svc)
+	createTableIfNotExists(svc, tableNames, "albums")
+	initAPI()
+}
+
+func initDynamoDB() *dynamodb.Client {
+	aws_access_key := goDotEnvVariable("AWS_ACCESS_KEY_ID")
+	aws_secret_key := goDotEnvVariable("AWS_YOUR_SECRET_KEY")
+	aws_token := goDotEnvVariable("AWS_TOKEN")
+	aws_region := goDotEnvVariable("AWS_REGION")
+	use_static_credentials := goDotEnvVariable("USE_STATIC_CREDENTIALS")
+
+	var cfg aws.Config
+	var err error
+	if use_static_credentials == "TRUE" {
+		//SETUP AWS with Static Credentials
+		cfg, err = config.LoadDefaultConfig(
+			context.TODO(),
+			config.WithCredentialsProvider(
+				credentials.NewStaticCredentialsProvider(aws_access_key, aws_secret_key, aws_token),
+			),
+			config.WithRegion(aws_region),
+		)
+	} else {
+		//SETUP AWS with Credentials IAM or Lambda
+
+		cfg, err = config.LoadDefaultConfig(context.TODO(), func(o *config.LoadOptions) error {
+			o.Region = aws_region
 			return nil
 		})
-	*/
-
-	//SETUP AWS with Static Credentials
-	cfg, err := config.LoadDefaultConfig(
-		context.TODO(),
-		config.WithCredentialsProvider(
-			credentials.NewStaticCredentialsProvider("YOUR_ACCESS_KEY_ID", "YOUR_SECRET_KEY", ""),
-		),
-		config.WithRegion("us-east-1"),
-	)
+	}
 
 	if err != nil {
 		panic(err)
 	}
 
 	svc := dynamodb.NewFromConfig(cfg)
+	return svc
+}
 
-	tableNames := listTables(svc)
-	createTableIfNotExists(svc, tableNames, "albums")
+func initAPI() {
+	port := goDotEnvVariable("SERVER_PORT")
 
 	//GIN FRAMEWORK REST API
 	router := gin.Default()
@@ -68,7 +91,22 @@ func main() {
 	router.GET("/albums/:id", getAlbumByID)
 	router.POST("/albums", postAlbums)
 
-	router.Run("localhost:8080")
+	//Default PORT is 8080
+	router.Run("localhost:" + port)
+}
+
+// use godot package to load/read the .env file and
+// return the value of the key
+func goDotEnvVariable(key string) string {
+
+	// load .env file
+	err := godotenv.Load(".env")
+
+	if err != nil {
+		log.Fatalf("Error loading .env file")
+	}
+
+	return os.Getenv(key)
 }
 
 func listTables(svc *dynamodb.Client) []string {
